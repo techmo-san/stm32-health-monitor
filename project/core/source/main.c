@@ -13,6 +13,7 @@
 #include "rcc.h"
 #include "stm32f4xx.h"
 #include "system_health_monitor_task.h"
+#include "uart.h"
 
 static void vStartup(void);
 
@@ -40,8 +41,11 @@ int main(void) {
   // Update the 'SystemCoreClock' variable required by FreeRTOS
   SystemCoreClockUpdate();
 
-  //Initialise the GPIO pins for different peripherals and USER_LED
+  // Initialise the GPIO pins for different peripherals and USER_LED
   GPIO_init();
+
+  // Initialise the UART transmission
+  UART_init();
 
   // Start the error task handler
   vErrorHandlerTaskStart();
