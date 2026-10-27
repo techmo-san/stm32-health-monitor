@@ -17,15 +17,13 @@
 #include "error_handler_task.h"
 #include "system_health_monitor_task.h"
 #include "tim.h"
+#include "uart.h"
 
 /**********************************************
  ******* Private function definitions *********
  *********************************************/
 
 static void vSystemHealthMonitorTask(void *param);
-
-// Variable to store the converted temperature
-static volatile float internal_temp_celsius = 0.0F;
 
 /**
  * Use the following function to read the analog value
@@ -49,8 +47,14 @@ static void vSystemHealthMonitorTask(void *param) {
 
   while (1) {
     if (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) > 0U) {
-      // float internal_temp = raw_to_celsius();
+      float internal_temp_celsius = raw_to_celsius();
       internal_temp_celsius = raw_to_celsius();
+
+      // Post the temperature on the COM port to be displayed on terminal
+      UART_write_string("Internal CPU Temperature (°C) = ");
+      UART_write_temp(internal_temp_celsius);
+      UART_write_string(" °C\r\n");
+
       if ((internal_temp_celsius < MIN_INT_TEMP_THRESHOLD_CELSIUS) || (internal_temp_celsius > MAX_INT_TEMP_THRESHOLD_CELSIUS)) {
         vErrorHandlerSendMsg(EVT_SYSTEM_HEALTH_TEMP_EXCEEDED);
       }
