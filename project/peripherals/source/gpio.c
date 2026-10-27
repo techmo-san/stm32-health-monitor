@@ -58,7 +58,7 @@ static void GPIO_set_output_speed(GPIO_pin_config_s *gpio) {
   gpio->port->OSPEEDR &= ~(3U << (2U * gpio->pin));
 
   // Check if the pin is set to output mode and then set the bitfield
-  if (gpio->pin_mode == GPIO_MODE_OUTPUT) {
+  if ((gpio->pin_mode == GPIO_MODE_OUTPUT) || (gpio->pin_mode == GPIO_MODE_AF)) {
     gpio->port->OSPEEDR |= (gpio->pin_output_speed << (2U * gpio->pin));
   }
 }
@@ -129,6 +129,9 @@ void GPIO_init(void) {
 
   // Configure the USER_LED object inside 'gpio_defs.c'
   GPIO_set_config(&USER_LED);
+
+  // Configure the PIN2 in port A for UART USB transmission
+  GPIO_set_config(&PA2);
 }
 
 void GPIO_set_pin(GPIO_pin_config_s *gpio) {
