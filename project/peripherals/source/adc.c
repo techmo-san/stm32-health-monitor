@@ -10,6 +10,7 @@
 
 #include "FreeRTOSTasks.h"
 #include "adc.h"
+#include "error_handler_task.h"
 #include "interrupts.h"
 #include "stm32f4xx.h"
 
@@ -26,8 +27,6 @@ static void adc_1_register_set_SQR3(void);
  ********* Temperature Handler ***********
  *****************************************/
 static volatile uint16_t temp_raw = 0;
-static volatile bool adc_conversion_complete = false;
-static volatile bool adc_overrun_detected = false;
 static TaskHandle_t xSystemHealthHandle = NULL; // Save the task handler to be used later for ISR notifications
 
 void adc_init(void) {
@@ -50,7 +49,8 @@ void adc_init(void) {
    *
    * The interrupt chain needs two bits fields to be set:
    * 1. At the peripheral level: EOCIE
-   * 2. NVIC Enable Interrupt Request: ADC_IRQn is the interrupt line inside 'stm32f4xx.h'
+   * 2. NVIC Enable Interrupt Request: ADC_IRQn is the enumeration with
+   * value 18 inside 'stm32f4xx.h'
    */
   NVIC_SetPriority(ADC_IRQn, 5);
   NVIC_EnableIRQ(ADC_IRQn);
@@ -219,8 +219,6 @@ void ADC_IRQ(void) {
     // Clear the EOC flag in ADC_SR register
     ADC1->SR &= ~(1U << 1);
 
-    adc_conversion_complete = true;
-
     if (xSystemHealthHandle != NULL) {
       vTaskNotifyGiveFromISR(xSystemHealthHandle, &woken);
     }
@@ -233,7 +231,7 @@ void ADC_IRQ(void) {
    */
   if (ADC1->SR & (1U << 5)) {
     ADC1->SR &= ~(1U << 5); // Clear the bit if overrun has occurred.
-    adc_overrun_detected = true;
+    vErrorHandlerSendMsgFromISR(EVT_SENSOR_READ_FAIL);
   }
 
   // Request a context switch
