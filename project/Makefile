@@ -64,11 +64,11 @@ build: $(BUILD_DIR)/$(TARGET).out
 
 .PHONY: flash
 flash: $(BUILD_DIR)/$(TARGET).out
-	$(OPENOCD) -f rt_air_quality.cfg -c "program $(BUILD_DIR)/$(TARGET).out verify reset exit" -l $(LOG_DIR)/openocd.log 
+	$(OPENOCD) -f stm32_health_monitor.cfg -c "program $(BUILD_DIR)/$(TARGET).out verify reset exit" -l $(LOG_DIR)/openocd.log 
 
 .PHONY: debug-server
 debug-server: flash
-	$(OPENOCD) -f rt_air_quality.cfg
+	$(OPENOCD) -f stm32_health_monitor.cfg
 	@echo "Open a new terminal and type 'make debug'"
 
 .PHONY: debug
@@ -83,3 +83,7 @@ $(TARGET).asm: $(BUILD_DIR)/$(TARGET).out
 .PHONY: clean
 clean:
 	rm -rf $(BUILD_DIR)
+
+.PHONY: show-temp
+show-temp:
+	picocom --baud 115200 --databits 8 --parity n --stopbits 1 --flow n /dev/ttyACM0
