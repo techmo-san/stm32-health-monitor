@@ -48,6 +48,8 @@ make flash
 ```
 # Show the internal tempe
 make show-temp
+
+# Press Ctrl+A and Ctrl+X to exit 'picocom'
 ```
 
 ## Debug Instructions
